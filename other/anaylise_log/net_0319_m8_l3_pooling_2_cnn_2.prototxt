@@ -1,0 +1,267 @@
+name: "hand_preLoc_0208_yolo_simple"
+
+layer {
+  name: "data"
+  type: "Data"
+  top: "data"
+  top: "label"
+  data_param {
+    backend: LEVELDB
+    source: "workspace/leveldb_train_0319"
+    batch_size: 100
+  }
+  transform_param {
+    scale: 0.00390625
+  }
+  include: { phase: TRAIN }
+}
+
+layer {
+  name: "data"
+  type: "Data"
+  top: "data"
+  top: "label"
+  data_param {
+    backend: LEVELDB
+    source: "workspace/leveldb_test_0319"
+    batch_size: 100
+  }
+  transform_param {
+    scale: 0.00390625
+  }
+  include: { phase: TEST }
+}
+
+
+layer {
+  name: "conv1"
+  type: "Convolution"
+  bottom: "data"
+  top: "conv1"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 8
+    pad: 2
+    kernel_size: 5
+    stride: 1
+    weight_filler {
+      type: "xavier"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu1"
+  type: "ReLU"
+  bottom: "conv1"
+  top: "conv1"
+}
+layer {
+  name: "pool1"
+  type: "Pooling"
+  bottom: "conv1"
+  top: "pool1"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+
+layer {
+  name: "conv2"
+  type: "Convolution"
+  bottom: "pool1"
+  top: "conv2"
+  param {
+    lr_mult: 1
+  }
+  param {
+    lr_mult: 2
+  }
+  convolution_param {
+    num_output: 8
+    pad: 2
+    kernel_size: 5
+    stride: 1
+    weight_filler {
+      type: "xavier"
+      std: 0.01
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}
+layer {
+  name: "relu2"
+  type: "ReLU"
+  bottom: "conv2"
+  top: "conv2"
+}
+layer {
+  name: "pool2"
+  type: "Pooling"
+  bottom: "conv2"
+  top: "pool2"
+  pooling_param {
+    pool: MAX
+    kernel_size: 2
+    stride: 2
+  }
+}
+
+layer {
+  name: "ip1"
+  type: "InnerProduct"
+  bottom: "pool2"
+  top: "ip1"
+  param {
+    lr_mult: 1
+  }
+  param {
+      lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 128
+    weight_filler {
+      type: "xavier"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+} 
+layer {
+  name: "relu11"
+  type: "ReLU"
+  bottom: "ip1"
+  top: "ip1"
+} 
+layer {
+  name: "ip2"
+  type: "InnerProduct"
+  bottom: "ip1"
+  top: "ip2"
+  param {
+    lr_mult: 1
+  }
+  param {
+      lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 128
+    weight_filler {
+      type: "xavier"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+} 
+layer {
+  name: "relu12"
+  type: "ReLU"
+  bottom: "ip2"
+  top: "ip2"
+} 
+
+ layer {
+  name: "drop1"
+  type: "Dropout"
+  bottom: "ip2"
+  top: "ip2"
+  dropout_param {
+    dropout_ratio: 0.2
+  }
+}
+
+ layer {
+  name: "ip3"
+  type: "InnerProduct"
+  bottom: "ip2"
+  top: "ip3"
+  param {
+    lr_mult: 1
+  }
+  param {
+      lr_mult: 2
+  }
+  inner_product_param {
+    num_output: 45
+    weight_filler {
+      type: "xavier"
+      std: 0.005
+    }
+    bias_filler {
+      type: "constant"
+      value: 0
+    }
+  }
+}  
+ 
+layer {
+  name: "loss"
+  type: "EuclideanSelectiveLoss"
+  bottom: "ip3"
+  bottom: "label"
+  top: "loss"
+  loss_weight: 1.0
+}
+
+layer {
+  name: "loss2"
+  type: "EuclideanSelectiveLoss2"
+  bottom: "ip3"
+  bottom: "label"
+  top: "loss2"
+  loss_weight: 1.0
+}
+
+layer {
+  name: "loss3"
+  type: "EuclideanSelectiveLoss3"
+  bottom: "ip3"
+  bottom: "label"
+  top: "loss3"
+  loss_weight: 1.0
+}
+
+layer {
+	name: "accuracy"
+	type: "BBoxAccuracy"
+	bottom: "ip3"
+	bottom: "label"
+	top: "accuracy"
+	include {
+		phase: TEST
+	}
+} 
+
+layer {
+	name: "recall"
+	type: "BBoxAccuracy2"
+	bottom: "ip3"
+	bottom: "label"
+	top: "recall"
+	include {
+		phase: TEST
+	}
+} 
+
+ 
